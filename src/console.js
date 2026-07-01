@@ -8,7 +8,7 @@ import { cvEntries } from './cv.js';
 const CMD_MS = 34; // command typing speed (per char)
 const OUT_MS = 12; // output typing speed (per char)
 const LINE_GAP = 130; // pause before each new output line
-const HOLD_MS = 3400; // pause once the whole card is printed
+const HOLD_MS = 6500; // pause once the whole card is printed (time to read)
 const FADE_MS = 400; // fade-out duration between cards
 const GAP_MS = 320; // pause after fade, before next card
 
