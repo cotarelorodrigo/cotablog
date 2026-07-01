@@ -93,23 +93,38 @@ export function mountConsole(target = document.body, entries = cvEntries, label 
 
       // First pass: persist a bubble card so the user can read it later.
       if (i < entries.length && bubblesEl) {
-        const bubble = document.createElement(entry.url ? 'a' : 'div');
+        const bubble = document.createElement('div');
         bubble.className = 'bubble';
-        if (entry.url) {
-          bubble.href = entry.url;
-          bubble.target = '_blank';
-          bubble.rel = 'noopener noreferrer';
-        }
+
+        const header = document.createElement('div');
+        header.className = 'b-header';
         const cmdDiv = document.createElement('div');
         cmdDiv.className = 'b-cmd';
         cmdDiv.textContent = `❯ ${entry.cmd}`;
-        bubble.appendChild(cmdDiv);
+        header.appendChild(cmdDiv);
+        if (entry.url) {
+          const link = document.createElement('a');
+          link.className = 'b-link';
+          link.href = entry.url;
+          link.target = '_blank';
+          link.rel = 'noopener noreferrer';
+          link.textContent = '↗';
+          link.addEventListener('click', (e) => e.stopPropagation());
+          header.appendChild(link);
+        }
+        bubble.appendChild(header);
+
+        const body = document.createElement('div');
+        body.className = 'b-body';
         for (const line of entry.out) {
           const outDiv = document.createElement('div');
           outDiv.className = 'b-out';
           outDiv.textContent = line;
-          bubble.appendChild(outDiv);
+          body.appendChild(outDiv);
         }
+        bubble.appendChild(body);
+
+        bubble.addEventListener('click', () => bubble.classList.toggle('expanded'));
         bubblesEl.appendChild(bubble);
         requestAnimationFrame(() => bubble.classList.add('visible'));
       }
