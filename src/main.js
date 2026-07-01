@@ -1,6 +1,11 @@
 import * as THREE from 'three';
 import { sampleImageToGrid } from './imageLoader.js';
 import { CubePortrait } from './CubePortrait.js';
+import { mountConsole } from './console.js';
+
+// Left-side achievements console — independent of the WebGL scene, so it shows even if
+// the photo fails to load.
+mountConsole();
 
 // ---------------------------------------------------------------------------
 // Config — every tunable lives here.

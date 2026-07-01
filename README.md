@@ -25,6 +25,23 @@ shot works well. To use a different filename or format, just update `CONFIG.phot
 `npm run placeholder` regenerates a stand-in portrait at `public/photo.jpg` if you ever
 need one.
 
+## CV console
+
+The left side is a terminal that cycles through your CV. Each entry types a "command"
+(`whoami`, `cat experience/…`, `skills`, `contact`) and prints an output block, then fades
+to the next and loops. Edit the list in **`src/cv.js`** — each entry is `{ cmd, out, url }`:
+
+```js
+{
+  cmd: 'cat experience/bluerabbit',
+  out: ['CTO & Co-founder · 2021 → 2024', 'Gamified community app → 30k users'],
+  url: 'https://…',   // optional: makes the card clickable + shows a ↗ in the header
+},
+```
+
+Cards with a `url` open in a new tab. The console respects `prefers-reduced-motion`
+(shows text instantly instead of typing).
+
 ## Build
 
 ```bash
@@ -40,6 +57,7 @@ npm run preview   # serve the production build locally
 | `src/physics.js` | Pure spring simulation over typed arrays: Hooke spring toward home + damping + simplex-noise drift + `scatter()` impulses. No inter-cube collisions. |
 | `src/CubePortrait.js` | Builds the `InstancedMesh`, sets per-instance colors, writes per-instance matrices each frame from the physics state. |
 | `src/main.js` | Renderer, orthographic camera, lights, resize handling, scatter scheduling, the RAF loop, and all tunables (`CONFIG`). |
+| `src/cv.js` / `src/console.js` | CV data and the typewriter terminal overlay on the left. |
 
 ### Tuning
 
