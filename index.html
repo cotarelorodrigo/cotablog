@@ -42,12 +42,21 @@
         display: flex;
       }
 
-      /* GitHub handle, fixed to the left edge, vertically centered. */
-      #github {
+      /* Left rail: social pills + CV console, stacked and vertically centered. */
+      #left-rail {
         position: fixed;
         left: clamp(0.75rem, 2.2vw, 2rem);
         top: 50%;
         transform: translateY(-50%);
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.55rem;
+        z-index: 5;
+      }
+
+      /* Social handles (GitHub, LinkedIn). */
+      .social {
         display: inline-flex;
         align-items: center;
         gap: 0.55rem;
@@ -63,30 +72,27 @@
         border: 1px solid rgba(255, 255, 255, 0.12);
         text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
         transition: color 0.2s ease, background 0.2s ease, border-color 0.2s ease;
-        z-index: 5;
       }
-      #github:hover {
+      .social:hover {
         color: #fff;
         background: rgba(0, 0, 0, 0.45);
         border-color: rgba(255, 255, 255, 0.28);
       }
-      #github svg {
+      .social svg {
         width: 18px;
         height: 18px;
         flex: none;
         fill: currentColor;
       }
       @media (max-width: 480px) {
-        #github span {
+        .social span {
           display: none;
         }
       }
 
-      /* CV console, on the left just below the GitHub handle. */
+      /* CV console, below the social pills. */
       #console {
-        position: fixed;
-        left: clamp(0.75rem, 2.2vw, 2rem);
-        top: calc(50% + 2.6rem);
+        margin-top: 0.35rem;
         width: min(50ch, 56vw);
         padding: 0.95rem 1.15rem;
         border-radius: 14px;
@@ -172,20 +178,51 @@
   </head>
   <body>
     <canvas id="scene"></canvas>
-    <a
-      id="github"
-      href="https://github.com/cotarelorodrigo"
-      target="_blank"
-      rel="noopener noreferrer"
-      aria-label="GitHub: cotarelorodrigo"
-    >
-      <svg viewBox="0 0 16 16" aria-hidden="true">
-        <path
-          d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z"
-        />
-      </svg>
-      <span>cotarelorodrigo</span>
-    </a>
+    <div id="left-rail">
+      <a
+        id="github"
+        class="social"
+        href="https://github.com/cotarelorodrigo"
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="GitHub: cotarelorodrigo"
+      >
+        <svg viewBox="0 0 16 16" aria-hidden="true">
+          <path
+            d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z"
+          />
+        </svg>
+        <span>cotarelorodrigo</span>
+      </a>
+      <a
+        id="linkedin"
+        class="social"
+        href="https://www.linkedin.com/in/rodrigo-cotarelo/"
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="LinkedIn: rodrigo-cotarelo"
+      >
+        <svg viewBox="0 0 16 16" aria-hidden="true">
+          <path
+            d="M13.63 0H2.37A2.37 2.37 0 000 2.37v11.26A2.37 2.37 0 002.37 16h11.26A2.37 2.37 0 0016 13.63V2.37A2.37 2.37 0 0013.63 0zM4.86 13.12H2.9V6.4h1.96v6.72zM3.88 5.5a1.14 1.14 0 110-2.28 1.14 1.14 0 010 2.28zm9.24 7.62h-1.96V9.6c0-.83-.02-1.9-1.16-1.9-1.16 0-1.34.9-1.34 1.84v3.58H6.7V6.4h1.88v.92h.03c.26-.5.9-1.02 1.85-1.02 1.98 0 2.35 1.3 2.35 3v3.82z"
+          />
+        </svg>
+        <span>rodrigo-cotarelo</span>
+      </a>
+      <a
+        id="email"
+        class="social"
+        href="mailto:cotarelorodrigo@gmail.com"
+        aria-label="Email: cotarelorodrigo@gmail.com"
+      >
+        <svg viewBox="0 0 16 16" aria-hidden="true">
+          <path
+            d="M1.5 2.5A1.5 1.5 0 000 4v8a1.5 1.5 0 001.5 1.5h13A1.5 1.5 0 0016 12V4a1.5 1.5 0 00-1.5-1.5h-13zm.4 1.2h12.2c.13 0 .25.03.36.08L8 8.02 1.54 3.78c.11-.05.23-.08.36-.08zM1.2 4.6l4.7 3.08L1.2 11.1V4.6zm.5 7.1l4.62-3.4L8 9.44l1.68-1.14 4.62 3.4c-.1.05-.22.08-.34.08H2.04c-.12 0-.24-.03-.34-.08zM14.8 11.1L10.1 7.68l4.7-3.08v6.5z"
+          />
+        </svg>
+        <span>cotarelorodrigo@gmail.com</span>
+      </a>
+    </div>
     <div id="error">
       Could not load <code>/photo.png</code>.<br />
       Drop a photo at <code>public/photo.png</code> and reload.

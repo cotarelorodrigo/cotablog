@@ -3,9 +3,9 @@ import { sampleImageToGrid } from './imageLoader.js';
 import { CubePortrait } from './CubePortrait.js';
 import { mountConsole } from './console.js';
 
-// Left-side achievements console — independent of the WebGL scene, so it shows even if
-// the photo fails to load.
-mountConsole();
+// Left-side CV console — mounted into the left rail (below the social pills), independent
+// of the WebGL scene, so it shows even if the photo fails to load.
+mountConsole(document.getElementById('left-rail'));
 
 // ---------------------------------------------------------------------------
 // Config — every tunable lives here.
