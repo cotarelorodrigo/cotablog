@@ -28,7 +28,8 @@ export function mountConsole(target = document.body) {
       <div class="cmd"><span class="prompt">&#10148;</span><span class="cmd-text"></span></div>
       <div class="out"></div>
     </a>`;
-  target.appendChild(root);
+  const bubblesEl = target.querySelector('#bubbles') ?? document.getElementById('bubbles');
+  target.insertBefore(root, bubblesEl ?? null);
 
   const block = root.querySelector('.console-block');
   const cmdText = root.querySelector('.cmd-text');
@@ -89,6 +90,29 @@ export function mountConsole(target = document.body) {
       }
 
       await sleep(HOLD_MS);
+
+      // First pass: persist a bubble card so the user can read it later.
+      if (i < cvEntries.length && bubblesEl) {
+        const bubble = document.createElement(entry.url ? 'a' : 'div');
+        bubble.className = 'bubble';
+        if (entry.url) {
+          bubble.href = entry.url;
+          bubble.target = '_blank';
+          bubble.rel = 'noopener noreferrer';
+        }
+        const cmdDiv = document.createElement('div');
+        cmdDiv.className = 'b-cmd';
+        cmdDiv.textContent = `❯ ${entry.cmd}`;
+        bubble.appendChild(cmdDiv);
+        for (const line of entry.out) {
+          const outDiv = document.createElement('div');
+          outDiv.className = 'b-out';
+          outDiv.textContent = line;
+          bubble.appendChild(outDiv);
+        }
+        bubblesEl.appendChild(bubble);
+        requestAnimationFrame(() => bubble.classList.add('visible'));
+      }
 
       // Fade the card out, then continue.
       block.style.transition = `opacity ${FADE_MS}ms ease`;

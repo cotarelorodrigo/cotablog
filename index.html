@@ -43,17 +43,18 @@
         display: flex;
       }
 
-      /* Left rail: social pills + CV console, stacked and vertically centered. */
+      /* Left rail: social pills + CV console + bubbles, top-aligned. */
       #left-rail {
         position: fixed;
         left: clamp(0.75rem, 2.2vw, 2rem);
-        top: 50%;
-        transform: translateY(-50%);
+        top: clamp(1.5rem, 6vh, 3rem);
         display: flex;
         flex-direction: column;
         align-items: flex-start;
         gap: 0.55rem;
         z-index: 5;
+        max-height: calc(100vh - clamp(1.5rem, 6vh, 3rem) - 1rem);
+        overflow-y: auto;
       }
 
       /* Social handles (GitHub, LinkedIn). */
@@ -175,6 +176,35 @@
           font-size: 13px;
         }
       }
+
+      /* Persistent bubbles — one per CV entry, appear after first-pass display. */
+      #bubbles {
+        display: flex;
+        flex-direction: column;
+        gap: 0.4rem;
+        margin-top: 0.4rem;
+        width: min(50ch, 56vw);
+      }
+      .bubble {
+        padding: 0.55rem 0.85rem;
+        border-radius: 10px;
+        background: rgba(0, 0, 0, 0.28);
+        backdrop-filter: blur(6px);
+        -webkit-backdrop-filter: blur(6px);
+        border: 1px solid rgba(255, 255, 255, 0.10);
+        font: 13px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace;
+        color: rgba(255, 255, 255, 0.85);
+        text-decoration: none;
+        display: block;
+        opacity: 0;
+        transition: opacity 0.4s ease;
+      }
+      .bubble.visible { opacity: 1; }
+      .bubble .b-cmd { color: #79c0ff; margin-bottom: 0.2rem; }
+      .bubble .b-out { color: rgba(255, 255, 255, 0.7); font-size: 12px; }
+      @media (max-width: 480px) {
+        #bubbles { display: none; }
+      }
     </style>
   </head>
   <body>
@@ -236,6 +266,7 @@
         </svg>
         <span>cafecito</span>
       </a>
+      <div id="bubbles"></div>
     </div>
     <div id="error">
       Could not load <code>/photo.png</code>.<br />
