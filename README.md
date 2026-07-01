@@ -13,7 +13,12 @@ npm run placeholder   # generates public/photo.jpg (a placeholder portrait)
 npm run dev           # start Vite, open the printed localhost URL
 ```
 
-Append `?stats` to the URL for an FPS / cube-count overlay.
+**Move your mouse over the scene** to reveal the photo locally — only the cubes the pointer
+passes over settle onto their home pixels (a "reveal brush"), while the rest keep drifting.
+Each touched cube stays calm for ~5s after the pointer leaves it, then rejoins the drift.
+
+URL flags: `?stats` (FPS / cube-count overlay), `?hold=<seconds>` (override the hold-to-view
+duration), `?debug` (exposes `window.__cv` for tuning).
 
 ## Use your own photo
 
@@ -68,6 +73,10 @@ All knobs live in `CONFIG` at the top of `src/main.js`:
 - **`physics.noiseAmp` / `noiseScale` / `noiseSpeed` / `noiseDepth`** — ambient drift character.
 - **`scatter.strength` / `minInterval` / `maxInterval`** — how hard and how often the photo
   dissolves and reforms.
+- **`holdToViewSeconds`** — how long a touched cube stays calm after the pointer leaves it.
+- **`holdRadius`** — reveal-brush radius (in cubes) around the pointer.
+- **`physics.calmDamping` / `calmStiffnessMul`** — how firmly/quickly the cubes snap into the
+  clear photo while holding to view.
 
 ## Performance
 

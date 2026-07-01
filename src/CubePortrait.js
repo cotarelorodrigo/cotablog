@@ -55,9 +55,45 @@ export class CubePortrait {
     this.writeMatrices(); // initial assembled state
   }
 
-  /** Trigger a scatter burst. */
-  scatter(strength) {
-    this.physics.scatter(strength);
+  /** Trigger a scatter burst (leaves calm cubes undisturbed). */
+  scatter(strength, time) {
+    this.physics.scatter(strength, time);
+  }
+
+  /**
+   * Calm every cube whose home falls within `radius` (world units) of the world point
+   * (wx, wy), i.e. paint a local "reveal" brush. Uses the regular grid layout to touch
+   * only the affected cells instead of scanning all cubes.
+   * @param {number} wx     world X
+   * @param {number} wy     world Y
+   * @param {number} radius reveal radius in world units
+   * @param {number} until  timestamp (s) to keep those cubes calm until
+   */
+  calmAt(wx, wy, radius, until) {
+    const g = this.grid;
+    const { cols, rows, cellSize } = g;
+    const x0 = -g.width / 2 + cellSize / 2;
+    const y0 = g.height / 2 - cellSize / 2;
+    const cf = (wx - x0) / cellSize; // fractional column
+    const rf = (y0 - wy) / cellSize; // fractional row
+    const span = Math.ceil(radius / cellSize);
+    const r2 = radius * radius;
+    const calmUntil = this.physics.calmUntil;
+
+    const c0 = Math.max(0, Math.round(cf) - span);
+    const c1 = Math.min(cols - 1, Math.round(cf) + span);
+    const r0 = Math.max(0, Math.round(rf) - span);
+    const r1 = Math.min(rows - 1, Math.round(rf) + span);
+
+    for (let r = r0; r <= r1; r++) {
+      const dy = (r - rf) * cellSize;
+      for (let c = c0; c <= c1; c++) {
+        const dx = (c - cf) * cellSize;
+        if (dx * dx + dy * dy > r2) continue;
+        const idx = r * cols + c;
+        if (until > calmUntil[idx]) calmUntil[idx] = until;
+      }
+    }
   }
 
   /** Step physics then push positions/rotations into the instance matrix buffer. */

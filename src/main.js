@@ -24,6 +24,8 @@ const CONFIG = {
     noiseSpeed: 0.25, // temporal speed of the drift field
     noiseDepth: 2.0, // Z breathing amplitude (world units)
     rotate: true, // cubes tumble with their velocity
+    calmDamping: 12, // damping while "holding to view" (settles cubes onto the photo)
+    calmStiffnessMul: 1.6, // stiffness boost while calm, for a crisp snap home
   },
 
   scatter: {
@@ -31,6 +33,11 @@ const CONFIG = {
     minInterval: 6, // seconds
     maxInterval: 12, // seconds
   },
+
+  // Move the pointer over the scene to reveal the photo locally: cubes under the pointer
+  // calm down (settle onto the photo) for a few seconds, while the rest keep drifting.
+  holdToViewSeconds: 5,
+  holdRadius: 6, // reveal-brush radius in cubes around the pointer
 
   maxPixelRatio: 2,
   maxDt: 1 / 30, // clamp delta after tab-switches so the sim can't explode
@@ -109,6 +116,54 @@ function scheduleScatter(now) {
 }
 
 // ---------------------------------------------------------------------------
+// "Reveal brush": moving the pointer over the scene calms the cubes it passes over, so the
+// photo reads clearly under the pointer for a few seconds. Local, not global.
+// ---------------------------------------------------------------------------
+// Optional ?hold=<seconds> override (handy for tuning / testing the resume delay).
+const holdParam = new URLSearchParams(location.search).get('hold');
+const holdSeconds = holdParam != null && holdParam !== '' ? Number(holdParam) : CONFIG.holdToViewSeconds;
+
+const _ptr = new THREE.Vector3();
+let lastPtr = null; // last pointer position in world space, for stroke interpolation
+
+function pointerToWorld(clientX, clientY) {
+  const ndcX = (clientX / window.innerWidth) * 2 - 1;
+  const ndcY = -(clientY / window.innerHeight) * 2 + 1;
+  // Orthographic: unprojected X/Y equal world X/Y regardless of Z.
+  _ptr.set(ndcX, ndcY, 0).unproject(camera);
+  return _ptr;
+}
+
+function paintCalm(clientX, clientY) {
+  if (!portrait) return;
+  const p = pointerToWorld(clientX, clientY);
+  const x = p.x;
+  const y = p.y;
+  const until = elapsed + holdSeconds;
+  const radius = CONFIG.holdRadius * CONFIG.cellSize;
+
+  if (lastPtr) {
+    // Fill the gap between frames so fast strokes don't leave holes.
+    const dx = x - lastPtr.x;
+    const dy = y - lastPtr.y;
+    const steps = Math.max(1, Math.floor(Math.hypot(dx, dy) / (radius * 0.5)));
+    for (let s = 1; s <= steps; s++) {
+      const f = s / steps;
+      portrait.calmAt(lastPtr.x + dx * f, lastPtr.y + dy * f, radius, until);
+    }
+  } else {
+    portrait.calmAt(x, y, radius, until);
+  }
+  lastPtr = { x, y };
+}
+
+canvas.addEventListener('pointermove', (e) => paintCalm(e.clientX, e.clientY));
+canvas.addEventListener('pointerdown', (e) => paintCalm(e.clientX, e.clientY));
+canvas.addEventListener('pointerleave', () => {
+  lastPtr = null; // reset so re-entry doesn't streak a line across the scene
+});
+
+// ---------------------------------------------------------------------------
 // Resize handling — debounced rebuild keeps cubes square and photo cover-cropped.
 // ---------------------------------------------------------------------------
 let resizeTimer = 0;
@@ -152,7 +207,8 @@ function tick() {
 
   if (portrait) {
     if (elapsed >= nextScatterAt) {
-      portrait.scatter(CONFIG.scatter.strength);
+      // Scatter runs globally; cubes currently calm under the pointer are left undisturbed.
+      portrait.scatter(CONFIG.scatter.strength, elapsed);
       scheduleScatter(elapsed);
     }
     portrait.update(dt, elapsed);
@@ -173,6 +229,57 @@ function tick() {
 function reportError(err) {
   console.error(err);
   errorEl.classList.add('visible');
+}
+
+// Debug hook (only with ?debug): inspect calm state and average cube drift for tuning.
+if (new URLSearchParams(location.search).has('debug')) {
+  const driftOf = (i) => {
+    const { pos, homes } = portrait.physics;
+    const ix = i * 3;
+    return Math.hypot(pos[ix] - homes[ix], pos[ix + 1] - homes[ix + 1], pos[ix + 2] - homes[ix + 2]);
+  };
+  window.__cv = {
+    time: () => elapsed,
+    count: () => portrait?.physics.count ?? 0,
+    // How many cubes are currently calm (under/near the pointer).
+    calmCount: () => {
+      if (!portrait) return 0;
+      const cu = portrait.physics.calmUntil;
+      let n = 0;
+      for (let i = 0; i < cu.length; i++) if (cu[i] > elapsed) n++;
+      return n;
+    },
+    avgDrift: () => {
+      if (!portrait) return null;
+      const n = portrait.physics.count;
+      let sum = 0;
+      for (let i = 0; i < n; i++) sum += driftOf(i);
+      return sum / n;
+    },
+    // Average drift of cubes within `radCells` of a screen point (to check the local reveal).
+    driftAtScreen: (px, py, radCells) => {
+      if (!portrait) return null;
+      const p = pointerToWorld(px, py);
+      const wx = p.x;
+      const wy = p.y;
+      const g = portrait.grid;
+      const rad = radCells * g.cellSize;
+      const r2 = rad * rad;
+      const { homes, count } = portrait.physics;
+      let sum = 0;
+      let n = 0;
+      for (let i = 0; i < count; i++) {
+        const ix = i * 3;
+        const dx = homes[ix] - wx;
+        const dy = homes[ix + 1] - wy;
+        if (dx * dx + dy * dy <= r2) {
+          sum += driftOf(i);
+          n++;
+        }
+      }
+      return n ? { avg: sum / n, n } : { avg: 0, n: 0 };
+    },
+  };
 }
 
 build()

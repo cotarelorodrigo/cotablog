@@ -36,6 +36,11 @@ export class Physics {
 
     // Simple xorshift RNG for scatter impulses (again, no Math.random dependency).
     this._rngState = 0x9e3779b9;
+
+    // Per-cube "calm until" timestamps (seconds). While calmUntil[i] > time, cube i
+    // suppresses ambient drift and settles firmly onto its home pixel, so the photo reads
+    // clearly right under the pointer. -1 means "never calm". Enables a local reveal brush.
+    this.calmUntil = new Float32Array(this.count).fill(-1);
   }
 
   _rand() {
@@ -50,10 +55,12 @@ export class Physics {
 
   /**
    * Blow the field apart from a random focal point. Springs reassemble it afterward.
+   * Cubes currently held calm (under the pointer) are left undisturbed.
    * @param {number} strength peak impulse velocity
+   * @param {number} time     current time (s), to test per-cube calm
    */
-  scatter(strength) {
-    const { pos, vel, count } = this;
+  scatter(strength, time = 0) {
+    const { pos, vel, count, calmUntil } = this;
     // Random focal point within the field's XY bounds, slightly in front on Z.
     const fx = (this._rand() - 0.5) * 2;
     const fy = (this._rand() - 0.5) * 2;
@@ -72,6 +79,7 @@ export class Physics {
     const spread = 0.5 * (maxX - minX); // falloff radius
 
     for (let i = 0; i < count; i++) {
+      if (calmUntil[i] > time) continue; // don't disturb the patch being viewed
       const ix = i * 3;
       let dx = pos[ix] - cx;
       let dy = pos[ix + 1] - cy;
@@ -92,13 +100,16 @@ export class Physics {
    * @param {number} time  elapsed time (s), drives the noise field
    */
   update(dt, time) {
-    const { pos, vel, homes, count, cfg } = this;
-    const k = cfg.stiffness;
-    const damp = cfg.damping;
+    const { pos, vel, homes, count, cfg, calmUntil } = this;
+    // Ambient vs. calm parameters — chosen per cube below.
+    const kA = cfg.stiffness;
+    const kC = cfg.stiffness * (cfg.calmStiffnessMul ?? 1.5);
+    const dA = cfg.damping;
+    const dC = cfg.calmDamping ?? 12; // heavier damping so calm cubes snap home and hold
     const nAmp = cfg.noiseAmp;
+    const zAmp = cfg.noiseDepth;
     const nScale = cfg.noiseScale;
     const t = time * cfg.noiseSpeed;
-    const zAmp = cfg.noiseDepth;
 
     for (let i = 0; i < count; i++) {
       const ix = i * 3;
@@ -106,16 +117,23 @@ export class Physics {
       const hy = homes[ix + 1];
       const hz = homes[ix + 2];
 
-      // Ambient noise sampled at the cube's HOME so neighbors move coherently.
-      const nx = this.noiseX(hx * nScale, hy * nScale, t);
-      const ny = this.noiseY(hx * nScale, hy * nScale, t);
-      const nz = this.noiseZ(hx * nScale, hy * nScale, t);
+      // Cubes under (or recently under) the pointer are calm: no ambient drift, firm spring.
+      const calm = calmUntil[i] > time;
+      const k = calm ? kC : kA;
+      const damp = calm ? dC : dA;
+      const na = calm ? 0 : nAmp;
+      const za = calm ? 0 : zAmp;
+
+      // Ambient noise sampled at the cube's HOME so neighbors move coherently (skip if calm).
+      const nx = na ? this.noiseX(hx * nScale, hy * nScale, t) : 0;
+      const ny = na ? this.noiseY(hx * nScale, hy * nScale, t) : 0;
+      const nz = za ? this.noiseZ(hx * nScale, hy * nScale, t) : 0;
 
       // Acceleration: spring home + damping + ambient drift.
       // Z gets an extra pull toward a noise-driven target depth for a gentle breathing pop.
-      const ax = -k * (pos[ix] - hx) - damp * vel[ix] + nx * nAmp;
-      const ay = -k * (pos[ix + 1] - hy) - damp * vel[ix + 1] + ny * nAmp;
-      const azTarget = hz + nz * zAmp;
+      const ax = -k * (pos[ix] - hx) - damp * vel[ix] + nx * na;
+      const ay = -k * (pos[ix + 1] - hy) - damp * vel[ix + 1] + ny * na;
+      const azTarget = hz + nz * za;
       const az = -k * (pos[ix + 2] - azTarget) - damp * vel[ix + 2];
 
       vel[ix] += ax * dt;
