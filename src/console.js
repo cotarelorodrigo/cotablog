@@ -14,21 +14,21 @@ const GAP_MS = 320; // pause after fade, before next card
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-export function mountConsole(target = document.body) {
-  if (!cvEntries.length) return;
+export function mountConsole(target = document.body, entries = cvEntries, label = '~/cv') {
+  if (!entries.length) return;
 
   const root = document.createElement('div');
-  root.id = 'console';
+  root.className = 'cv-console';
   root.innerHTML = `
     <div class="console-head">
-      <span class="dot"></span><span class="label">~/cv</span
+      <span class="dot"></span><span class="label">${label}</span
       ><span class="arrow">&#8599;</span>
     </div>
     <a class="console-block" rel="noopener noreferrer" target="_blank">
       <div class="cmd"><span class="prompt">&#10148;</span><span class="cmd-text"></span></div>
       <div class="out"></div>
     </a>`;
-  const bubblesEl = target.querySelector('#bubbles') ?? document.getElementById('bubbles');
+  const bubblesEl = target.querySelector('#bubbles');
   target.insertBefore(root, bubblesEl ?? null);
 
   const block = root.querySelector('.console-block');
@@ -59,7 +59,7 @@ export function mountConsole(target = document.body) {
   async function run() {
     let i = 0;
     for (;;) {
-      const entry = cvEntries[i % cvEntries.length];
+      const entry = entries[i % entries.length];
       const hasLink = Boolean(entry.url);
 
       // Reset the card.
@@ -92,7 +92,7 @@ export function mountConsole(target = document.body) {
       await sleep(HOLD_MS);
 
       // First pass: persist a bubble card so the user can read it later.
-      if (i < cvEntries.length && bubblesEl) {
+      if (i < entries.length && bubblesEl) {
         const bubble = document.createElement(entry.url ? 'a' : 'div');
         bubble.className = 'bubble';
         if (entry.url) {

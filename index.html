@@ -53,8 +53,6 @@
         align-items: flex-start;
         gap: 0.55rem;
         z-index: 5;
-        max-height: calc(100vh - clamp(1.5rem, 6vh, 3rem) - 1rem);
-        overflow-y: auto;
       }
 
       /* Social handles (GitHub, LinkedIn). */
@@ -93,7 +91,7 @@
       }
 
       /* CV console, below the social pills. */
-      #console {
+      .cv-console {
         margin-top: 0.35rem;
         width: min(50ch, 56vw);
         padding: 0.95rem 1.15rem;
@@ -107,7 +105,7 @@
         text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
         z-index: 5;
       }
-      #console .console-head {
+      .cv-console .console-head {
         display: flex;
         align-items: center;
         gap: 0.5rem;
@@ -117,51 +115,51 @@
         text-transform: uppercase;
         color: rgba(255, 255, 255, 0.45);
       }
-      #console .console-head .dot {
+      .cv-console .console-head .dot {
         width: 8px;
         height: 8px;
         border-radius: 50%;
         background: #7ee787;
         box-shadow: 0 0 6px rgba(126, 231, 135, 0.8);
       }
-      #console .console-head .arrow {
+      .cv-console .console-head .arrow {
         margin-left: auto;
         color: #7ee787;
         transition: opacity 0.2s ease;
       }
-      #console .console-block {
+      .cv-console .console-block {
         display: block;
         color: inherit;
         text-decoration: none;
       }
-      #console .console-block.has-link {
+      .cv-console .console-block.has-link {
         cursor: pointer;
       }
-      #console .cmd {
+      .cv-console .cmd {
         white-space: pre-wrap;
         word-break: break-word;
       }
-      #console .cmd .prompt {
+      .cv-console .cmd .prompt {
         color: #7ee787;
         margin-right: 0.5ch;
       }
-      #console .cmd .cmd-text {
+      .cv-console .cmd .cmd-text {
         color: #79c0ff; /* command reads like input */
       }
-      #console .console-block.has-link:hover .cmd-text {
+      .cv-console .console-block.has-link:hover .cmd-text {
         text-decoration: underline;
         text-underline-offset: 3px;
       }
-      #console .out {
+      .cv-console .out {
         margin-top: 0.15rem;
         min-height: 4.6em; /* reserve ~3 lines so the panel doesn't jump between cards */
         color: rgba(255, 255, 255, 0.86);
       }
-      #console .out-line {
+      .cv-console .out-line {
         white-space: pre-wrap;
         word-break: break-word;
       }
-      #console .cursor {
+      .cv-console .cursor {
         color: rgba(255, 255, 255, 0.85);
         animation: console-blink 1s steps(1) infinite;
       }
@@ -171,7 +169,7 @@
         }
       }
       @media (max-width: 480px) {
-        #console {
+        .cv-console {
           width: min(36ch, 82vw);
           font-size: 13px;
         }
@@ -181,11 +179,14 @@
       #bubbles {
         display: flex;
         flex-direction: column;
+        flex-wrap: wrap;
+        align-content: flex-start;
         gap: 0.4rem;
         margin-top: 0.4rem;
-        width: min(50ch, 56vw);
+        max-height: 55vh;
       }
       .bubble {
+        width: min(50ch, 56vw);
         padding: 0.55rem 0.85rem;
         border-radius: 10px;
         background: rgba(0, 0, 0, 0.28);
@@ -205,6 +206,7 @@
       @media (max-width: 480px) {
         #bubbles { display: none; }
       }
+
     </style>
   </head>
   <body>
