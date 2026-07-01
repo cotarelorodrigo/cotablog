@@ -206,11 +206,6 @@ function tick() {
   elapsed += dt;
 
   if (portrait) {
-    if (elapsed >= nextScatterAt) {
-      // Scatter runs globally; cubes currently calm under the pointer are left undisturbed.
-      portrait.scatter(CONFIG.scatter.strength, elapsed);
-      scheduleScatter(elapsed);
-    }
     portrait.update(dt, elapsed);
     renderer.render(scene, camera);
   }
@@ -284,7 +279,6 @@ if (new URLSearchParams(location.search).has('debug')) {
 
 build()
   .then(() => {
-    scheduleScatter(0);
     tick();
   })
   .catch(reportError);
